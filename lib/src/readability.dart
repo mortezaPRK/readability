@@ -85,10 +85,28 @@ class Article {
       };
 }
 
+/// Callback type for logging messages from the Readability parser.
+///
+/// Example:
+/// ```dart
+/// void myLogger(List<dynamic> args) {
+///   print('Reader: (Readability) ${args.join(' ')}');
+/// }
+///
+/// final article = parse(html, logger: myLogger, debug: true);
+/// ```
+typedef ReadabilityLogger = void Function(List<dynamic> args);
+
 /// Configuration options for the Readability parser.
 class ReadabilityOptions {
-  /// Enable debug logging.
+  /// Enable debug logging to stdout.
+  /// If [logger] is provided, this is ignored.
   final bool debug;
+
+  /// Custom logger callback for debug messages.
+  /// When provided, debug messages are sent to this callback
+  /// instead of being printed to stdout.
+  final ReadabilityLogger? logger;
 
   /// Maximum number of elements to parse (0 = no limit).
   final int maxElemsToParse;
@@ -119,6 +137,7 @@ class ReadabilityOptions {
 
   const ReadabilityOptions({
     this.debug = false,
+    this.logger,
     this.maxElemsToParse = 0,
     this.numTopCandidates = 5,
     this.charThreshold = 500,
@@ -362,6 +381,7 @@ class Readability {
   Map<String, dynamic> _metadata = {};
 
   final bool _debug;
+  final ReadabilityLogger _logger;
   final int _maxElemsToParse;
   final int _numTopCandidates;
   final int _charThreshold;
@@ -397,6 +417,10 @@ class Readability {
       [ReadabilityOptions? options])
       : _docJSDOMParser = _doc.isJSDOMParser,
         _debug = options?.debug ?? false,
+        _logger = options?.logger ??
+            ((options?.debug ?? false)
+                ? (args) => print('Reader: (Readability) ${args.join(' ')}')
+                : (args) {}),
         _maxElemsToParse = options?.maxElemsToParse ?? defaultMaxElemsToParse,
         _numTopCandidates = options?.numTopCandidates ?? defaultNTopCandidates,
         _charThreshold = options?.charThreshold ?? defaultCharThreshold,
@@ -433,9 +457,7 @@ class Readability {
             doc, doc is JsdomDomDocument ? doc.unwrap : null, options);
 
   void _log(List<dynamic> args) {
-    if (_debug) {
-      print('Reader: (Readability) ${args.join(' ')}');
-    }
+    _logger(args);
   }
 
   ReadabilityScore _getReadability(DomElement node) {

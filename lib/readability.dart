@@ -63,7 +63,8 @@ export 'src/adapters/html_adapter.dart';
 // Import for use in convenience functions
 import 'package:html/parser.dart' as html_parser;
 import 'src/jsdom_parser.dart' show JSDOMParser;
-import 'src/readability.dart' show Readability, ReadabilityOptions, Article;
+import 'src/readability.dart'
+    show Readability, ReadabilityOptions, ReadabilityLogger, Article;
 import 'src/dom_adapter.dart' show DomElement;
 import 'src/adapters/jsdom_adapter.dart' show JsdomDomDocument;
 import 'src/adapters/html_adapter.dart' show HtmlDomDocument;
@@ -97,12 +98,19 @@ enum ParserType {
 ///   baseUri: 'https://example.com',
 ///   charThreshold: 1000,
 /// );
+///
+/// // With custom logger
+/// final article = parse(
+///   htmlString,
+///   logger: (msg) => print('[Readability] $msg'),
+/// );
 /// ```
 ///
 /// Parameters:
 /// - [html]: The HTML content to parse
 /// - [parser]: Which parser to use (default: [ParserType.jsdom])
 /// - [baseUri]: Base URI for resolving relative URLs (only used with jsdom parser)
+/// - [logger]: Custom callback for debug messages (overrides [debug] flag)
 /// - All other parameters map to [ReadabilityOptions] fields
 ///
 /// Returns the extracted [Article] or null if no readable content was found.
@@ -111,6 +119,7 @@ Article? parse(
   ParserType parser = ParserType.jsdom,
   String? baseUri,
   bool debug = false,
+  ReadabilityLogger? logger,
   int maxElemsToParse = 0,
   int numTopCandidates = 5,
   int charThreshold = 500,
@@ -123,6 +132,7 @@ Article? parse(
 }) {
   final options = ReadabilityOptions(
     debug: debug,
+    logger: logger,
     maxElemsToParse: maxElemsToParse,
     numTopCandidates: numTopCandidates,
     charThreshold: charThreshold,

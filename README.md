@@ -72,10 +72,21 @@ final article = parse(
   html,
   parser: ParserType.jsdom,  // or ParserType.html
   baseUri: 'https://example.com',
-  debug: false,              // Enable debug logging
+  debug: false,              // Enable debug logging to stdout
   charThreshold: 500,        // Minimum content length
   maxElemsToParse: 0,        // Element limit (0 = unlimited)
   keepClasses: false,        // Preserve CSS classes
+);
+```
+
+#### Custom Logger
+
+```dart
+// Pass a custom logger callback for debug messages
+final article = parse(
+  html,
+  logger: (message) => myLogger.debug(message),
+  debug: true, // <- without this, logger won't be called
 );
 ```
 
@@ -144,7 +155,6 @@ final article = parse(html, parser: ParserType.html);
 
 ## Todo
 
-- [ ] Provide a way to pass a logger
 - [ ] Publish to pub.dev
 - [ ] Best practices on having dependencies pinned for covering most users
 - [ ] Check if js can be replaced with a Mozilla's implementation without any manual work
