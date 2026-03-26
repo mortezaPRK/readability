@@ -46,7 +46,7 @@ $(JS_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 
 # Build WASM bundle (depends on source files, experimental)
 $(WASM_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile wasm $(CLI_SOURCE) -o $@ 2>/dev/null || echo "WASM compilation not supported"
+	dart compile wasm $(CLI_SOURCE) -o $@ 2>/dev/null
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -57,7 +57,7 @@ build-js: $(JS_BUNDLE) ## Compile to JavaScript
 
 build-wasm: $(WASM_BUNDLE) ## Compile to WebAssembly (experimental)
 
-build-all: $(CLI_BINARY) $(JS_BUNDLE) ## Build CLI and JS bundle
+build-all: $(CLI_BINARY) $(JS_BUNDLE) $(WASM_BUNDLE) ## Build everthing
 
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR)/
