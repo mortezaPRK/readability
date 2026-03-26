@@ -1,0 +1,55 @@
+name: PR Preview Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to build preview for'
+        required: true
+        type: string
+
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  # Manual trigger: Build pre-release for PR
+  build-preview:
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/build.yml
+    with:
+      version: pr-${{ inputs.pr_number }}
+      release_name: "Preview: PR #${{ inputs.pr_number }}"
+      prerelease: true
+
+  # Cleanup: Remove pre-release when PR is closed
+  cleanup-preview:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete PR preview release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          TAG="pr-${PR_NUMBER}"
+
+          echo "Checking for preview release: $TAG"
+
+          # Check if release exists and delete it
+          if gh release view "$TAG" --repo "${{ github.repository }}" &>/dev/null; then
+            echo "Deleting release: $TAG"
+            gh release delete "$TAG" --repo "${{ github.repository }}" --yes
+          else
+            echo "No preview release found for PR #${PR_NUMBER}"
+          fi
+
+          # Check if tag exists and delete it
+          if git ls-remote --tags origin | grep -q "refs/tags/$TAG"; then
+            echo "Deleting tag: $TAG"
+            gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$TAG" || true
+          else
+            echo "No tag found: $TAG"
+          fi

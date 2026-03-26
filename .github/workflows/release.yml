@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ github.event.release.tag_name }}
+      release_name: ${{ github.event.release.name }}
+      prerelease: ${{ github.event.release.prerelease }}
+
+  # TODO: Uncomment and configure when ready to publish to pub.dev
+  # publish-pubdev:
+  #   name: Publish to pub.dev
+  #   needs: build
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+  #
+  #     - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c # v1
+  #       with:
+  #         sdk: stable
+  #
+  #     - name: Publish to pub.dev
+  #       run: dart pub publish --force
+  #       env:
+  #         PUB_TOKEN: ${{ secrets.PUB_TOKEN }}
