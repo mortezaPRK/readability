@@ -1,0 +1,79 @@
+# Apache License 2.0
+
+Unless otherwise noted, this project is licensed under the Apache License, Version 2.0.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+# Mozilla Public License v2.0 (MPL-2.0)
+
+The following files are licensed under the Mozilla Public License v2.0:
+- `lib/src/jsdom_parser.dart`
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this file,
+You can obtain one at http://mozilla.org/MPL/2.0/.
+
+---
+
+# Copyright Notice
+
+Copyright (c) 2024, Dart Readability contributors
+
+This is a Dart port of Mozilla's Readability.js (https://github.com/mozilla/readability)
+
+## Original Copyright Holders
+
+### Apache License 2.0 Portions
+- Original work Copyright (c) 2010 Arc90 Inc
+
+### Mozilla Public License 2.0 Portions
+- JSDOMParser: Copyright (c) Mozilla Foundation and contributors
+
+## Third-Party Licenses
+
+### Mozilla Readability.js
+
+This project includes code derived from Mozilla's Readability.js.
+- Repository: https://github.com/mozilla/readability
+- License: Apache License 2.0
+- License File: https://github.com/mozilla/readability/blob/main/LICENSE.md
+
+### Mozilla JSDOMParser
+
+This project includes code derived from Mozilla's JSDOMParser.
+- Repository: https://github.com/mozilla/readability
+- License: Mozilla Public License v2.0 (MPL-2.0)
+- License File: https://github.com/mozilla/readability/blob/main/JSDOMParser.js
+
+### html package
+
+This project uses the `html` package from pub.dev, which is
+derived from the Dart SDK and licensed under the BSD 3-Clause License.
+
+### lints package
+
+This project uses the `lints` package from pub.dev, which is
+licensed under the BSD 3-Clause License.
+
+## License Summary
+
+- **Main library code** (readability, readerable): Apache License 2.0
+- **JSDOMParser port**: Mozilla Public License v2.0 (MPL-2.0)
+
+Both licenses are:
+- Open source
+- Commercial-friendly
+- GPL-compatible (can be used in GPL projects)
+- Weak copyleft (MPL-2.0 is file-level copyleft only)
