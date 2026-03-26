@@ -1,0 +1,21 @@
+name: readability
+description: A Dart port of Mozilla's Readability.js content extraction library.
+version: 0.1.0
+repository: https://github.com/mortezaPRK/readability
+homepage: https://github.com/mortezaPRK/readability
+issue_tracker: https://github.com/mortezaPRK/readability/issues
+
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MPL-2.0
+# See LICENSE file for details on dual licensing
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  html: ^0.15.5
+
+dev_dependencies:
+  coverage: ^1.9.0
+  lints: ">=5.0.0 <7.0.0"
+  test: ^1.25.0

@@ -1,0 +1,93 @@
+# mozilla/readability commit hash
+READABILITY_COMMIT := 08be6b4bdb204dd333c9b7a0cfbc0e730b257252
+TARGET_COMMIT := readability/.git/_target_commit/$(READABILITY_COMMIT)
+
+# Source files
+LIB_SOURCES := $(shell find lib -name '*.dart' 2>/dev/null)
+CLI_SOURCE := bin/cli.dart
+
+# Build outputs
+BUILD_DIR := build
+CLI_BINARY := $(BUILD_DIR)/readability
+JS_BUNDLE := $(BUILD_DIR)/readability.js
+WASM_BUNDLE := $(BUILD_DIR)/readability.wasm
+
+.PHONY: all get lint fix clean help ci coverage test-unit test-e2e run-example
+
+all: lint test-unit ## Run lint and tests (default)
+
+get: pubspec.lock ## Install Dart dependencies
+
+pubspec.lock: pubspec.yaml
+	dart pub get
+	@touch $@
+
+test-unit: get ## Run unit tests
+	dart test test/unit/*.dart
+
+test-e2e: get $(TARGET_COMMIT) readability/node_modules/jsdom ## Run e2e tests (requires Node.js)
+	dart test test/e2e/*.dart
+
+lint: get ## Check formatting and analyze code
+	dart format --set-exit-if-changed .
+	dart analyze
+
+fix: get ## Auto-fix lint issues and format code
+	dart fix --apply
+	dart format .
+
+# Build CLI binary (depends on source files)
+$(CLI_BINARY): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile exe $(CLI_SOURCE) -o $@
+
+# Build JS bundle (depends on source files)
+$(JS_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile js $(CLI_SOURCE) -o $@ || echo "JS compilation failed"
+
+# Build WASM bundle (depends on source files, experimental)
+$(WASM_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile wasm $(CLI_SOURCE) -o $@ 2>/dev/null || echo "WASM compilation not supported"
+
+$(BUILD_DIR):
+	mkdir -p $@
+
+build-cli: $(CLI_BINARY) ## Compile CLI to native executable
+
+build-js: $(JS_BUNDLE) ## Compile to JavaScript
+
+build-wasm: $(WASM_BUNDLE) ## Compile to WebAssembly (experimental)
+
+build-all: $(CLI_BINARY) $(JS_BUNDLE) ## Build CLI and JS bundle
+
+clean: ## Remove build artifacts
+	rm -rf $(BUILD_DIR)/
+	rm -rf .dart_tool/
+	rm -rf readability/
+
+run-example: get ## Run the example
+	dart run example/readability_example.dart
+
+ci: lint test-unit ## Full CI check (lint + test)
+
+# Clone mozilla/readability at specific commit
+$(TARGET_COMMIT):
+	rm -rf readability
+	git clone https://github.com/mozilla/readability.git readability
+	cd readability && git checkout --quiet $(READABILITY_COMMIT)
+	mkdir -p readability/.git/_target_commit
+	touch $(TARGET_COMMIT)
+
+# Install jsdom for JS parity tests
+readability/node_modules/jsdom: $(TARGET_COMMIT)
+	cd readability && npm install jsdom
+
+coverage: get ## Generate code coverage report
+	dart pub global activate coverage
+	dart test --coverage=coverage/lcov.info
+	dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=lib
+	@echo "Coverage report generated in coverage/lcov.info"
+	@echo "View with: genhtml coverage/lcov.info -o coverage/html"
+	@echo "Or use: lcov --summary coverage/lcov.info"
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-15s %s\n", $$1, $$2}'
