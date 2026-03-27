@@ -22,94 +22,40 @@ permissions:
   contents: write
 
 jobs:
-  build-binaries:
-    name: Build ${{ matrix.os }}-${{ matrix.arch }}
+  build:
+    name: Build ${{ matrix.file_name }}
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: linux
-            arch: x64
-            runner: ubuntu-latest
-            artifact: readability-linux-x64
-          - os: linux
-            arch: arm64
-            runner: ubuntu-24.04-arm
-            artifact: readability-linux-arm64
-          - os: macos
-            arch: arm64
-            runner: macos-latest
-            artifact: readability-macos-arm64
-          - os: windows
-            arch: x64
-            runner: windows-latest
-            artifact: readability-windows-x64.exe
+          - runner: ubuntu-24.04
+            file_name: readability.wasm
+          - runner: ubuntu-24.04
+            file_name: readability.js
+          - runner: ubuntu-24.04
+            file_name: readability-linux-x64
+          - runner: ubuntu-24.04-arm
+            file_name: readability-linux-arm64
+          - runner: macos-15-intel
+            file_name: readability-macos-x64
+          - runner: macos-15
+            file_name: readability-macos-arm64
+          - runner: windows-2025
+            file_name: readability-windows-x64.exe
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
         with:
           sdk: stable
-
-      - name: Build CLI
-        run: dart compile exe bin/cli.dart -o ${{ matrix.artifact }}
+      - name: Build
+        run: make build/${{ matrix.file_name }}
         shell: bash
-
       - name: Upload to Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
         with:
           tag_name: ${{ inputs.version }}
           name: ${{ inputs.release_name || inputs.version }}
-          files: ${{ matrix.artifact }}
-          prerelease: ${{ inputs.prerelease }}
-
-  build-js:
-    name: Build JavaScript
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
-        with:
-          sdk: stable
-
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Build JS
-        run: dart compile js bin/cli.dart -o readability.js
-
-      - name: Upload to Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: ${{ inputs.release_name || inputs.version }}
-          files: readability.js
-          prerelease: ${{ inputs.prerelease }}
-
-  build-wasm:
-    name: Build WebAssembly
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
-        with:
-          sdk: stable
-
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Build WASM
-        run: |
-          dart compile wasm bin/cli.dart -o readability.wasm
-
-      - name: Upload to Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
-        with:
-          tag_name: ${{ inputs.version }}
-          name: ${{ inputs.release_name || inputs.version }}
-          files: readability.wasm
+          files: build/${{ matrix.file_name }}
           prerelease: ${{ inputs.prerelease }}
