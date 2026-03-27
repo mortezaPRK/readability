@@ -37,16 +37,20 @@ fix: get ## Auto-fix lint issues and format code
 	dart format .
 
 # Build CLI binary (depends on source files)
-$(CLI_BINARY): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+$(CLI_BINARY): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile exe $(CLI_SOURCE) -o $@
+
+# Build CLI binary with custom suffix (e.g., make build/readability-x212)
+$(CLI_BINARY)-%: get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 	dart compile exe $(CLI_SOURCE) -o $@
 
 # Build JS bundle (depends on source files)
-$(JS_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+$(JS_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 	dart compile js $(CLI_SOURCE) -o $@ || echo "JS compilation failed"
 
 # Build WASM bundle (depends on source files, experimental)
-$(WASM_BUNDLE): $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile wasm $(CLI_SOURCE) -o $@ 2>/dev/null || echo "WASM compilation not supported"
+$(WASM_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile wasm $(CLI_SOURCE) -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -57,7 +61,7 @@ build-js: $(JS_BUNDLE) ## Compile to JavaScript
 
 build-wasm: $(WASM_BUNDLE) ## Compile to WebAssembly (experimental)
 
-build-all: $(CLI_BINARY) $(JS_BUNDLE) ## Build CLI and JS bundle
+build-all: $(CLI_BINARY) $(JS_BUNDLE) $(WASM_BUNDLE) ## Build everthing
 
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR)/
