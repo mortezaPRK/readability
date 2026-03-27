@@ -30,19 +30,19 @@ jobs:
       matrix:
         include:
           - runner: ubuntu-24.04
-            file_name: readability.wasm
+            file_name: readability-wasm.tar.gz
           - runner: ubuntu-24.04
-            file_name: readability.js
+            file_name: readability-js.tar.gz
           - runner: ubuntu-24.04
-            file_name: readability-linux-x64
+            file_name: readability_linux-x64
           - runner: ubuntu-24.04-arm
-            file_name: readability-linux-arm64
+            file_name: readability_linux-arm64
           - runner: macos-15-intel
-            file_name: readability-macos-x64
+            file_name: readability_macos-x64
           - runner: macos-15
-            file_name: readability-macos-arm64
+            file_name: readability_macos-arm64
           - runner: windows-2025
-            file_name: readability-windows-x64.exe
+            file_name: readability_windows-x64.exe
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

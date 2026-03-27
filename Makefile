@@ -5,12 +5,16 @@ TARGET_COMMIT := readability/.git/_target_commit/$(READABILITY_COMMIT)
 # Source files
 LIB_SOURCES := $(shell find lib -name '*.dart' 2>/dev/null)
 CLI_SOURCE := bin/cli.dart
+JS_SOURCE := lib/src/readability_js.dart
 
 # Build outputs
 BUILD_DIR := build
 CLI_BINARY := $(BUILD_DIR)/readability
 JS_BUNDLE := $(BUILD_DIR)/readability.js
 WASM_BUNDLE := $(BUILD_DIR)/readability.wasm
+JS_TAR := $(BUILD_DIR)/readability-js.tar.gz
+WASM_TAR := $(BUILD_DIR)/readability-wasm.tar.gz
+JS_TYPES := $(BUILD_DIR)/readability.d.ts
 
 .PHONY: all get lint fix clean help ci coverage test-unit test-e2e run-example
 
@@ -41,16 +45,16 @@ $(CLI_BINARY): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 	dart compile exe $(CLI_SOURCE) -o $@
 
 # Build CLI binary with custom suffix (e.g., make build/readability-x212)
-$(CLI_BINARY)-%: get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+$(CLI_BINARY)_%: get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 	dart compile exe $(CLI_SOURCE) -o $@
 
 # Build JS bundle (depends on source files)
-$(JS_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile js $(CLI_SOURCE) -o $@ || echo "JS compilation failed"
+$(JS_BUNDLE): get $(JS_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile js $(JS_SOURCE) -o $@
 
 # Build WASM bundle (depends on source files, experimental)
-$(WASM_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile wasm $(CLI_SOURCE) -o $@
+$(WASM_BUNDLE): get $(JS_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile wasm $(JS_SOURCE) -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@
@@ -59,9 +63,25 @@ build-cli: $(CLI_BINARY) ## Compile CLI to native executable
 
 build-js: $(JS_BUNDLE) ## Compile to JavaScript
 
-build-wasm: $(WASM_BUNDLE) ## Compile to WebAssembly (experimental)
+build-wasm: $(WASM_BUNDLE) ## Compile to WebAssembly
 
-build-all: $(CLI_BINARY) $(JS_BUNDLE) $(WASM_BUNDLE) ## Build everthing
+# Create JS distribution archive
+$(JS_TAR): $(JS_BUNDLE) $(JS_TYPES)
+	tar -czf $@ -C $(BUILD_DIR) readability.js readability.d.ts
+
+# Create WASM distribution archive
+$(WASM_TAR): $(WASM_BUNDLE) $(JS_TYPES)
+	tar -czf $@ -C $(BUILD_DIR) readability.wasm readability.mjs readability.support.js readability.d.ts
+
+# Copies Types file for JS to build dir
+$(JS_TYPES): readability.d.ts
+	cp -f readability.d.ts $(JS_TYPES)
+
+dist-js: $(JS_TAR) ## Create JS distribution archive
+
+dist-wasm: $(WASM_TAR) ## Create WASM distribution archive
+
+build-all: $(CLI_BINARY) $(JS_BUNDLE) $(WASM_BUNDLE) ## Build everything
 
 clean: ## Remove build artifacts
 	rm -rf $(BUILD_DIR)/
