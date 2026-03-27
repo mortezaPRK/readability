@@ -4,7 +4,7 @@ A Dart port of [Mozilla's Readability.js](https://github.com/mozilla/readability
 
 ## Requirements
 
-- Dart SDK >=3.2.0 <4.0.0
+- Dart SDK >=3.3.0 <4.0.0
 
 ## Installation
 
@@ -130,15 +130,34 @@ readability --metadata article.html
 
 After compiling with `make build-js`:
 
-```html
-<script src="readability.js"></script>
-<script>
-  // The compiled JS exposes the Dart main function
-  // For library usage, create a wrapper entry point
-</script>
+```js
+import { parse, isProbablyReaderable } from './readability.js';
+
+const html = `
+  <html>
+    <head><title>My Article</title></head>
+    <body>
+      <article>
+        <h1>Hello World</h1>
+        <p>This is the main content of the article...</p>
+      </article>
+    </body>
+  </html>
+`;
+
+// Quick check if content is worth parsing
+if (isProbablyReaderable(html)) {
+  const article = parse(html, { baseUri: 'https://example.com' });
+
+  if (article) {
+    console.log('Title:', article.title);
+    console.log('Author:', article.byline);
+    console.log('Content:', article.textContent);
+  }
+}
 ```
 
-For library usage, create a custom entry point that exports the API you need.
+TypeScript definitions are included in `build/readability.d.ts`.
 
 ## Alternative Parsers
 
@@ -160,8 +179,6 @@ final article = parse(html, parser: ParserType.html);
 ## Todo
 
 - [ ] Publish to pub.dev
-- [ ] Check if js can be replaced with a Mozilla's implementation without any manual work
-- [ ] Publish js to npmjs
 - [ ] Cleanup CI
 
 ## Contributing

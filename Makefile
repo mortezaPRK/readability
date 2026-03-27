@@ -5,6 +5,7 @@ TARGET_COMMIT := readability/.git/_target_commit/$(READABILITY_COMMIT)
 # Source files
 LIB_SOURCES := $(shell find lib -name '*.dart' 2>/dev/null)
 CLI_SOURCE := bin/cli.dart
+JS_SOURCE := lib/src/readability_js.dart
 
 # Build outputs
 BUILD_DIR := build
@@ -45,12 +46,13 @@ $(CLI_BINARY)-%: get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
 	dart compile exe $(CLI_SOURCE) -o $@
 
 # Build JS bundle (depends on source files)
-$(JS_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile js $(CLI_SOURCE) -o $@ || echo "JS compilation failed"
+$(JS_BUNDLE): get $(JS_SOURCE) $(LIB_SOURCES) readability.d.ts | $(BUILD_DIR)
+	dart compile js $(JS_SOURCE) -o $@
+	cp readability.d.ts $(BUILD_DIR)/readability.d.ts
 
 # Build WASM bundle (depends on source files, experimental)
-$(WASM_BUNDLE): get $(CLI_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
-	dart compile wasm $(CLI_SOURCE) -o $@
+$(WASM_BUNDLE): get $(JS_SOURCE) $(LIB_SOURCES) | $(BUILD_DIR)
+	dart compile wasm $(JS_SOURCE) -o $@
 
 $(BUILD_DIR):
 	mkdir -p $@
