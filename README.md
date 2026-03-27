@@ -2,6 +2,10 @@
 
 A Dart port of [Mozilla's Readability.js](https://github.com/mozilla/readability) - extract readable content from any web page.
 
+## Requirements
+
+- Dart SDK >=3.2.0 <4.0.0
+
 ## Installation
 
 ### As a Dart Package
@@ -156,11 +160,9 @@ final article = parse(html, parser: ParserType.html);
 ## Todo
 
 - [ ] Publish to pub.dev
-- [ ] Best practices on having dependencies pinned for covering most users
 - [ ] Check if js can be replaced with a Mozilla's implementation without any manual work
 - [ ] Publish js to npmjs
 - [ ] Cleanup CI
-- [ ] Build for Darwin x86
 
 ## Contributing
 

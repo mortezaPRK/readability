@@ -15,22 +15,26 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - command: lint
-          - command: test-unit
-          - command: test-e2e
+        sdk:
+          - 3.2.0
+          - stable
+        command:
+          - target: lint
+          - target: test-unit
+          - target: test-e2e
             require-js: true
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
         with:
-          sdk: stable
+          sdk: ${{ matrix.sdk }}
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        if: ${{ matrix.require-js }}
+        if: ${{ matrix.command.require-js }}
         with:
           node-version: "20"
-      - run: make ${{ matrix.command }}
+      - run: make ${{ matrix.command.target }}
 
   ci:
     name: Checks
