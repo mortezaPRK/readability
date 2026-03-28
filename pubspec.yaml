@@ -1,4 +1,4 @@
-name: readability
+name: reader_mode
 description: A Dart port of Mozilla's Readability.js content extraction library.
 version: 0.1.0
 repository: https://github.com/mortezaPRK/readability
@@ -8,6 +8,21 @@ issue_tracker: https://github.com/mortezaPRK/readability/issues
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-License-Identifier: MPL-2.0
 # See LICENSE file for details on dual licensing
+
+topics:
+  - html
+  - parser
+  - readability
+  - content-extraction
+  - article
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  windows:
+  web:
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

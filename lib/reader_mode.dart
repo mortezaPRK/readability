@@ -12,7 +12,7 @@
 /// ## Usage
 ///
 /// ```dart
-/// import 'package:readability/readability.dart';
+/// import 'package:reader_mode/reader_mode.dart';
 ///
 /// // Simple usage with parse() function
 /// final article = parse(htmlString, baseUri: 'https://example.com');
@@ -34,7 +34,7 @@
 ///
 /// ```dart
 /// import 'package:html/parser.dart' as html;
-/// import 'package:readability/readability.dart';
+/// import 'package:reader_mode/reader_mode.dart';
 ///
 /// final document = html.parse(htmlString);
 /// if (isProbablyReaderable(document)) {

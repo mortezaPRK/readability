@@ -5,7 +5,7 @@ import 'dart:js_interop';
 
 import 'package:html/parser.dart' as html_parser;
 
-import '../readability.dart' as lib;
+import '../reader_mode.dart' as lib;
 
 /// JS-compatible Article object
 extension type JSArticle._(JSObject _) implements JSObject {

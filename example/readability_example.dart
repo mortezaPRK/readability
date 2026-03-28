@@ -1,6 +1,6 @@
 // ignore_for_file: avoid_print
 
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 
 void main() {
   // Example HTML content

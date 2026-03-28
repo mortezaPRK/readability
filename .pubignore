@@ -1,0 +1,12 @@
+# ignore everything
+/*
+
+# except for the following files and directories:
+!.gitignore
+!/lib
+!/pubspec.yaml
+!/LICENSE
+!README.md
+
+# And again the gitignore
+.gitignore

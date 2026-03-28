@@ -8,7 +8,7 @@
 library;
 
 import 'package:test/test.dart';
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 
 void main() {
   group('Dual Parser Support', () {

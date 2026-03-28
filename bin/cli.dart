@@ -4,7 +4,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 
 void main(List<String> args) {
   if (args.isEmpty || args.contains('--help') || args.contains('-h')) {

@@ -1,7 +1,7 @@
 /// Tests for Readability content scoring algorithm.
 library;
 
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 import 'package:test/test.dart';
 
 void main() {

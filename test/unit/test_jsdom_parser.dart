@@ -1,7 +1,7 @@
 /// Unit tests for JSDOM parser.
 library;
 
-import 'package:readability/readability.dart' as jsdom;
+import 'package:reader_mode/reader_mode.dart' as jsdom;
 import 'package:test/test.dart';
 
 const _baseTestCase =
