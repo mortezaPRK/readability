@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 jobs:
-  # Check if we should release (only for push events)
+  # Check if we should release (only for push to main)
   check-version:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
@@ -69,22 +69,3 @@ jobs:
       release_name: ${{ github.event_name == 'release' && github.event.release.name || format('v{0}', needs.check-version.outputs.version) }}
       prerelease: ${{ github.event_name == 'release' && github.event.release.prerelease || false }}
       body: ${{ github.event_name == 'push' && needs.check-version.outputs.changelog || '' }}
-
-  # Publish to pub.dev
-  publish:
-    name: Publish to pub.dev
-    needs: [check-version, build]
-    if: |
-      always() &&
-      needs.build.result == 'success' &&
-      (github.event_name == 'release' && !github.event.release.prerelease ||
-       github.event_name == 'push' && needs.check-version.outputs.should_release == 'true')
-    runs-on: ubuntu-latest
-    environment: pub.dev
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c # v1
-        with:
-          sdk: stable
-      - name: Publish
-        run: dart pub publish --force
