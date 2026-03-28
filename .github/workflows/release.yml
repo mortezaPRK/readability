@@ -3,23 +3,82 @@ name: Release
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths: [pubspec.yaml]
 
 permissions:
   contents: write
   id-token: write
 
 jobs:
+  # Check if we should release (only for push events)
+  check-version:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      should_release: ${{ steps.check.outputs.should_release }}
+      changelog: ${{ steps.changelog.outputs.body }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version change
+        id: check
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          TAG="v$VERSION"
+
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping release"
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version detected: $VERSION"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract changelog
+        if: steps.check.outputs.should_release == 'true'
+        id: changelog
+        run: |
+          VERSION="${{ steps.check.outputs.version }}"
+
+          # Extract changelog section for this version
+          BODY=$(awk "/^## $VERSION/{flag=1; next} /^## [0-9]/{flag=0} flag" CHANGELOG.md)
+
+          # Handle multi-line output
+          {
+            echo "body<<EOF"
+            echo "$BODY"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+  # Build artifacts and create release
   build:
+    needs: [check-version]
+    if: |
+      always() &&
+      (github.event_name == 'release' ||
+       (github.event_name == 'push' && needs.check-version.outputs.should_release == 'true'))
     uses: ./.github/workflows/build.yml
     with:
-      version: ${{ github.event.release.tag_name }}
-      release_name: ${{ github.event.release.name }}
-      prerelease: ${{ github.event.release.prerelease }}
+      version: ${{ github.event_name == 'release' && github.event.release.tag_name || format('v{0}', needs.check-version.outputs.version) }}
+      release_name: ${{ github.event_name == 'release' && github.event.release.name || format('v{0}', needs.check-version.outputs.version) }}
+      prerelease: ${{ github.event_name == 'release' && github.event.release.prerelease || false }}
+      body: ${{ github.event_name == 'push' && needs.check-version.outputs.changelog || '' }}
 
+  # Publish to pub.dev
   publish:
     name: Publish to pub.dev
-    needs: build
-    if: ${{ !github.event.release.prerelease }}
+    needs: [check-version, build]
+    if: |
+      always() &&
+      needs.build.result == 'success' &&
+      (github.event_name == 'release' && !github.event.release.prerelease ||
+       github.event_name == 'push' && needs.check-version.outputs.should_release == 'true')
     runs-on: ubuntu-latest
     environment: pub.dev
     steps:
