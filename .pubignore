@@ -2,11 +2,9 @@
 /*
 
 # except for the following files and directories:
-!.gitignore
 !/lib
+!/example
 !/pubspec.yaml
 !/LICENSE
-!README.md
-
-# And again the gitignore
-.gitignore
+!/README.md
+!/CHANGELOG.md
