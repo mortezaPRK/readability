@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## 0.1.1
+
+- automated release workflow (#6)
+- Rename example and add doc to .gitignore
+- make license pub friendly
+- docs for jsdom attributes
+- Fix/pub score (#7)
 ## 0.1.0
 
 - Initial release as `reader_mode`
