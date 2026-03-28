@@ -285,18 +285,45 @@ const Set<String> _voidElems = {
 const List<String> _whitespace = [' ', '\t', '\n', '\r'];
 
 // See https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+/// Node type constants matching the DOM specification.
+///
+/// These constants identify the type of a DOM node. Use [Node.nodeType]
+/// to get the type of a specific node instance.
 abstract class NodeType {
+  /// Element node type (e.g., `<div>`, `<p>`).
   static const int elementNode = 1;
+
+  /// Attribute node type.
   static const int attributeNode = 2;
+
+  /// Text node type (text content within elements).
   static const int textNode = 3;
+
+  /// CDATA section node type.
   static const int cdataSectionNode = 4;
+
+  /// Entity reference node type (deprecated in DOM4).
   static const int entityReferenceNode = 5;
+
+  /// Entity node type (deprecated in DOM4).
   static const int entityNode = 6;
+
+  /// Processing instruction node type.
   static const int processingInstructionNode = 7;
+
+  /// Comment node type (e.g., `<!-- comment -->`).
   static const int commentNode = 8;
+
+  /// Document node type (the root of a document tree).
   static const int documentNode = 9;
+
+  /// Document type node type (e.g., `<!DOCTYPE html>`).
   static const int documentTypeNode = 10;
+
+  /// Document fragment node type.
   static const int documentFragmentNode = 11;
+
+  /// Notation node type (deprecated in DOM4).
   static const int notationNode = 12;
 }
 
@@ -328,14 +355,28 @@ abstract class Node {
   // ignore: constant_identifier_names
   static const int NOTATION_NODE = 12;
 
+  /// The list of attributes on this node (only meaningful for elements).
   List<Attribute> attributes = [];
+
+  /// The list of child nodes.
   List<Node> childNodes = [];
+
+  /// The local name of the element (lowercase tag name without namespace).
   String? localName;
+
+  /// The name of the node (tag name for elements, special names for others).
   String? nodeName;
+
+  /// The parent node of this node, or null if this is the root.
   Node? parentNode;
+
+  /// The next sibling node, or null if this is the last child.
   Node? nextSibling;
+
+  /// The previous sibling node, or null if this is the first child.
   Node? previousSibling;
 
+  /// The type of this node (see [NodeType] constants).
   int get nodeType;
 
   Node? get firstChild => childNodes.isNotEmpty ? childNodes[0] : null;
@@ -440,6 +481,10 @@ abstract class Node {
     }
   }
 
+  /// Appends a child node to this node's children.
+  ///
+  /// If [child] is a [DocumentFragment], its children are appended instead.
+  /// Returns the appended [child] node.
   Node appendChild(Node child) {
     final nodes = child.nodeType == Node.DOCUMENT_FRAGMENT_NODE
         ? List<Node>.from(child.childNodes)
@@ -448,6 +493,10 @@ abstract class Node {
     return child;
   }
 
+  /// Inserts [newNode] before [referenceNode] in this node's children.
+  ///
+  /// If [referenceNode] is null, [newNode] is appended to the end.
+  /// Throws [StateError] if [referenceNode] is not a child of this node.
   Node insertBefore(Node newNode, Node? referenceNode) {
     if (identical(newNode, referenceNode)) {
       return newNode;
@@ -468,6 +517,9 @@ abstract class Node {
     return newNode;
   }
 
+  /// Removes this node from its parent.
+  ///
+  /// Returns this node after removal. If already detached, returns immediately.
   Node remove() {
     final parent = parentNode;
     if (parent == null) {
@@ -511,10 +563,17 @@ abstract class Node {
     return this;
   }
 
+  /// Removes [child] from this node's children.
+  ///
+  /// Returns the removed [child] node.
   Node removeChild(Node child) {
     return child.remove();
   }
 
+  /// Replaces [oldNode] with [newNode] in this node's children.
+  ///
+  /// Throws [StateError] if [oldNode] is not a child of this node.
+  /// Returns the replaced [oldNode].
   Node replaceChild(Node newNode, Node oldNode) {
     if (identical(newNode, oldNode)) {
       return oldNode;
@@ -530,6 +589,10 @@ abstract class Node {
     return oldNode;
   }
 
+  /// Returns all descendant elements with the specified tag name.
+  ///
+  /// Use `'*'` to get all descendant elements regardless of tag name.
+  /// Tag names are case-insensitive.
   List<Element> getElementsByTagName(String tag) {
     tag = tag.toUpperCase();
     final elems = <Element>[];
@@ -554,24 +617,29 @@ abstract class Node {
   bool get __JSDOMParser__ => true;
 }
 
-/// Represents an HTML/XML attribute.
+/// Represents an HTML/XML attribute name-value pair.
 class Attribute {
+  /// The attribute name (e.g., "class", "id", "href").
   final String name;
   String _value;
 
+  /// Creates an attribute with the given [name] and [_value].
   Attribute(this.name, this._value);
 
+  /// The attribute value.
   String get value => _value;
 
+  /// Sets the attribute value.
   void setValue(String newValue) {
     _value = newValue;
   }
 
+  /// Returns the attribute value with HTML entities encoded.
   String getEncodedValue() {
     return _encodeAttrValue(_value);
   }
 
-  /// Cheat horribly. This is fine for our usecases.
+  /// Creates a shallow clone of this attribute.
   Attribute cloneNode() {
     return this;
   }
@@ -680,15 +748,31 @@ class TextNode extends Node {
 }
 
 /// Represents an HTML document.
+///
+/// The document is the root of the DOM tree and provides methods for
+/// creating and querying elements.
 class Document extends Node {
+  /// The URI of the document (if provided during parsing).
   final String? documentURI;
+
+  /// The list of stylesheets in the document.
   final List<dynamic> styleSheets = [];
+
+  /// The document title (from the `<title>` element).
   String title = '';
+
+  /// The `<head>` element of the document.
   Element? head;
+
+  /// The `<body>` element of the document.
   Element? body;
+
+  /// The root element of the document (typically `<html>`).
   Element? documentElement;
+
   String? _baseURI;
 
+  /// Creates a new document with an optional [documentURI].
   Document([this.documentURI]) {
     childNodes = [];
     _children = [];
@@ -712,6 +796,7 @@ class Document extends Node {
   @override
   set innerHTML(String value) {}
 
+  /// Returns the element with the specified [id], or null if not found.
   Element? getElementById(String id) {
     Element? getElem(Node node) {
       final length = node.children.length;
@@ -796,20 +881,27 @@ class Document extends Node {
     return true;
   }
 
+  /// Creates a new element with the specified [tag] name.
   Element createElement(String tag) {
     return Element(tag);
   }
 
+  /// Creates a new text node with the specified [text] content.
   TextNode createTextNode(String text) {
     final node = TextNode();
     node.textContent = text;
     return node;
   }
 
+  /// Creates a new document fragment.
   DocumentFragment createDocumentFragment() {
     return DocumentFragment();
   }
 
+  /// The base URI for resolving relative URLs in this document.
+  ///
+  /// Returns the `href` attribute of the `<base>` element if present,
+  /// otherwise returns [documentURI].
   String get baseURI {
     if (_baseURI == null) {
       _baseURI = documentURI ?? '';
@@ -833,15 +925,26 @@ class Document extends Node {
 }
 
 /// Represents an HTML element node.
+///
+/// Elements are nodes that represent HTML tags like `<div>`, `<p>`, etc.
+/// They have a [tagName], [attributes], and can contain child nodes.
 class Element extends Node {
   /// The original tag used for matching the closing tag.
   final String _matchingTag;
+
+  /// The inline style object for this element.
   late final Style style;
+
+  /// The next sibling element, or null if this is the last element child.
   Element? nextElementSibling;
+
+  /// The previous sibling element, or null if this is the first element child.
   Element? previousElementSibling;
 
+  /// The tag name in uppercase (e.g., "DIV", "P", "SPAN").
   String tagName;
 
+  /// Creates an element with the specified [tag] name.
   Element(String tag)
       : _matchingTag = tag,
         tagName = _normalizeTagName(tag) {
@@ -871,18 +974,23 @@ class Element extends Node {
   @override
   String get nodeName => tagName;
 
+  /// The value of the "class" attribute (space-separated class names).
   String get className => getAttribute('class') ?? '';
   set className(String str) => setAttribute('class', str);
 
+  /// The value of the "id" attribute.
   String get id => getAttribute('id') ?? '';
   set id(String str) => setAttribute('id', str);
 
+  /// The value of the "href" attribute (for links, base elements, etc.).
   String get href => getAttribute('href') ?? '';
   set href(String str) => setAttribute('href', str);
 
+  /// The value of the "src" attribute (for images, scripts, etc.).
   String get src => getAttribute('src') ?? '';
   set src(String str) => setAttribute('src', str);
 
+  /// The value of the "srcset" attribute (for responsive images).
   String get srcset => getAttribute('srcset') ?? '';
   set srcset(String str) => setAttribute('srcset', str);
 
@@ -974,6 +1082,7 @@ class Element extends Node {
     return text.join('');
   }
 
+  /// Returns the value of the attribute with the given [name], or null.
   String? getAttribute(String name) {
     for (final attr in attributes.reversed) {
       if (attr.name == name) {
@@ -983,6 +1092,9 @@ class Element extends Node {
     return null;
   }
 
+  /// Sets the attribute with the given [name] to [value].
+  ///
+  /// If the attribute already exists, its value is updated.
   void setAttribute(String name, String value) {
     for (final attr in attributes.reversed) {
       if (attr.name == name) {
@@ -993,10 +1105,12 @@ class Element extends Node {
     attributes.add(Attribute(name, value));
   }
 
+  /// Sets an attribute from an [Attribute] node.
   void setAttributeNode(Attribute node) {
     setAttribute(node.name, node.value);
   }
 
+  /// Removes the attribute with the given [name].
   void removeAttribute(String name) {
     for (var i = attributes.length - 1; i >= 0; i--) {
       final attr = attributes[i];
@@ -1007,6 +1121,7 @@ class Element extends Node {
     }
   }
 
+  /// Returns true if this element has an attribute with the given [name].
   bool hasAttribute(String name) {
     return attributes.any((attr) => attr.name == name);
   }
@@ -1074,15 +1189,20 @@ class Element extends Node {
 
 /// Represents the style property of an element, backed by the style attribute.
 ///
-/// getStyle() and setStyle() use the style attribute string directly. This
+/// [getStyle] and [setStyle] use the style attribute string directly. This
 /// won't be very efficient if there are a lot of style manipulations, but
 /// it's the easiest way to make sure the style attribute string and the JS
 /// style property stay in sync.
 class Style {
+  /// The element this style object belongs to.
   final Element node;
 
+  /// Creates a style object for the given [node].
   Style(this.node);
 
+  /// Gets the value of a CSS property by its [styleName].
+  ///
+  /// Returns null if the property is not set.
   String? getStyle(String styleName) {
     final attr = node.getAttribute('style');
     if (attr == null) {
@@ -1101,6 +1221,9 @@ class Style {
     return null;
   }
 
+  /// Sets a CSS property [styleName] to [styleValue].
+  ///
+  /// Updates the element's style attribute string directly.
   void setStyle(String styleName, String styleValue) {
     var value = node.getAttribute('style') ?? '';
     var index = 0;
@@ -1259,16 +1382,37 @@ class _SelectorParts {
   const _SelectorParts({this.tag, this.id, this.className});
 }
 
+/// A lightweight DOM parser that converts HTML strings to a DOM tree.
+///
+/// This parser is designed to be safe to use in isolates and provides
+/// a minimal DOM implementation sufficient for Readability's needs.
+///
+/// Note: This is not a fully compliant HTML5 parser. Properly formed
+/// HTML/XML should be used as input.
+///
+/// Example:
+/// ```dart
+/// final parser = JSDOMParser();
+/// final document = parser.parse(htmlString, 'https://example.com');
+/// print(document.title);
+/// print(document.body?.textContent);
+/// ```
 class JSDOMParser {
   int _currentChar = 0;
   late String _html;
+
+  /// The parsed document. Available after calling [parse].
   late Document doc;
+
+  /// Contains any error messages encountered during parsing.
   String errorState = '';
+
   // Reusable buffer for building strings one char at a time.
   final List<String> _strBuf = [];
   // Reusable pair for returning from makeElementNode.
   final List<dynamic> _retPair = [null, false];
 
+  /// Logs an error message during parsing.
   void error(String m) {
     // ignore: avoid_print
     print('JSDOMParser error: $m\n');
