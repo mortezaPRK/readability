@@ -1,0 +1,39 @@
+# Third-Party Licenses
+
+This project includes code from the following sources:
+
+## Mozilla JSDOMParser (MPL-2.0)
+
+The file `lib/src/jsdom_parser.dart` is a Dart port of Mozilla's JSDOMParser
+and is licensed under the Mozilla Public License v2.0.
+
+- Original source: https://github.com/mozilla/readability
+- Copyright: Mozilla Foundation and contributors
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this file,
+You can obtain one at http://mozilla.org/MPL/2.0/.
+
+## Mozilla Readability.js (Apache-2.0)
+
+This project is a Dart port of Mozilla's Readability.js.
+
+- Original source: https://github.com/mozilla/readability
+- Original work Copyright (c) 2010 Arc90 Inc
+- License: Apache License 2.0
+
+## Dependencies
+
+### html package (BSD 3-Clause)
+
+This project uses the `html` package from pub.dev.
+
+- Source: https://pub.dev/packages/html
+- License: BSD 3-Clause License
+
+### lints package (BSD 3-Clause)
+
+This project uses the `lints` package from pub.dev.
+
+- Source: https://pub.dev/packages/lints
+- License: BSD 3-Clause License
