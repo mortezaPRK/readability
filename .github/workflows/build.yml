@@ -17,6 +17,11 @@ on:
         required: false
         type: string
         default: ""
+      body:
+        description: "Release notes body"
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -32,7 +37,7 @@ jobs:
           tag_name: ${{ inputs.version }}
           name: ${{ inputs.release_name || inputs.version }}
           prerelease: ${{ inputs.prerelease }}
-          body: "Release ${{ inputs.version }}"
+          body: ${{ inputs.body || format('Release {0}', inputs.version) }}
 
   build:
     name: Build ${{ matrix.file_name }}

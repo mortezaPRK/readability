@@ -1,0 +1,128 @@
+name: Create Release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Get current version
+        id: current
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current version: $VERSION"
+
+      - name: Calculate new version
+        id: new
+        run: |
+          IFS='.' read -r major minor patch <<< "${{ steps.current.outputs.version }}"
+          case "${{ inputs.bump }}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            patch) patch=$((patch + 1)) ;;
+          esac
+          NEW_VERSION="$major.$minor.$patch"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Get last release tag
+        id: last_tag
+        run: |
+          LAST_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            LAST_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          echo "tag=$LAST_TAG" >> $GITHUB_OUTPUT
+          echo "Last tag: $LAST_TAG"
+
+      - name: Generate changelog
+        id: changelog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LAST_TAG="${{ steps.last_tag.outputs.tag }}"
+          NEW_VERSION="${{ steps.new.outputs.version }}"
+
+          # Get commits since last tag
+          COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%H %s" --reverse)
+
+          CHANGELOG="## $NEW_VERSION\n"
+
+          if [ -z "$COMMITS" ]; then
+            CHANGELOG+="\n- No changes\n"
+          else
+            CHANGELOG+="\n"
+            while IFS= read -r line; do
+              HASH=$(echo "$line" | cut -d' ' -f1)
+              MSG=$(echo "$line" | cut -d' ' -f2-)
+
+              # Check if it's a merge commit for a PR
+              if [[ "$MSG" =~ ^Merge\ pull\ request\ \#([0-9]+) ]]; then
+                PR_NUM="${BASH_REMATCH[1]}"
+                PR_TITLE=$(gh pr view "$PR_NUM" --json title --jq '.title' 2>/dev/null || echo "$MSG")
+                CHANGELOG+="- $PR_TITLE (#$PR_NUM)\n"
+              elif [[ ! "$MSG" =~ ^Merge ]]; then
+                # Skip other merge commits, include regular commits
+                CHANGELOG+="- $MSG\n"
+              fi
+            done <<< "$COMMITS"
+          fi
+
+          # Write to file for multi-line output
+          echo -e "$CHANGELOG" > changelog_entry.txt
+          echo "Generated changelog:"
+          cat changelog_entry.txt
+
+      - name: Update pubspec.yaml
+        run: |
+          sed -i "s/^version: .*/version: ${{ steps.new.outputs.version }}/" pubspec.yaml
+          echo "Updated pubspec.yaml:"
+          grep '^version:' pubspec.yaml
+
+      - name: Update CHANGELOG.md
+        run: |
+          NEW_VERSION="${{ steps.new.outputs.version }}"
+
+          # Read the new changelog entry
+          NEW_ENTRY=$(cat changelog_entry.txt)
+
+          # Create new CHANGELOG.md with entry prepended after header
+          {
+            head -4 CHANGELOG.md
+            echo ""
+            echo -e "$NEW_ENTRY"
+            tail -n +5 CHANGELOG.md
+          } > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md
+
+          echo "Updated CHANGELOG.md:"
+          head -20 CHANGELOG.md
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # v7
+        with:
+          token: ${{ github.token }}
+          commit-message: "chore: release v${{ steps.new.outputs.version }}"
+          branch: release/v${{ steps.new.outputs.version }}
+          delete-branch: true
+          title: "Release v${{ steps.new.outputs.version }}"
+          body-path: changelog_entry.txt
