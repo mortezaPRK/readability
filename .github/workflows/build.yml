@@ -22,8 +22,21 @@ permissions:
   contents: write
 
 jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.release_name || inputs.version }}
+          prerelease: ${{ inputs.prerelease }}
+          body: "Release ${{ inputs.version }}"
+
   build:
     name: Build ${{ matrix.file_name }}
+    needs: create-release
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false

@@ -14,7 +14,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  readability: ^0.1.0
+  reader_mode: ^0.1.0
 ```
 
 ### As a CLI Tool
@@ -40,7 +40,7 @@ make build-js
 ### Dart Package
 
 ```dart
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 
 void main() {
   final html = '<html>...</html>';
@@ -175,11 +175,6 @@ final article = parse(html, parser: ParserType.html);
 |--------|----------|-------|----------|
 | JSDOMParser | Highest | Fast | Production, compatibility |
 | html package | High | Moderate | Pure Dart preference |
-
-## Todo
-
-- [ ] Publish to pub.dev
-- [ ] Cleanup CI
 
 ## Contributing
 

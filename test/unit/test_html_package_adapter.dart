@@ -2,7 +2,7 @@
 library;
 
 import 'package:test/test.dart';
-import 'package:readability/readability.dart';
+import 'package:reader_mode/reader_mode.dart';
 import 'package:html/parser.dart' as html_parser;
 
 void main() {
