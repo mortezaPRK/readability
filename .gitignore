@@ -12,3 +12,6 @@ build/
 # Coverage reports
 coverage/
 doc/
+
+# Generated files
+CHANGELOG.md

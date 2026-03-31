@@ -2,6 +2,15 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -15,10 +24,10 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_PAT }}
 
-      - name: Determine version
+      - name: Bump version
         id: version
         run: |
-          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
+          VERSION=$(make bump-version BUMP=${{ inputs.bump }})
           TAG="v$VERSION"
 
           if git rev-parse "$TAG" >/dev/null 2>&1; then
@@ -28,54 +37,15 @@ jobs:
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "Creating tag: $TAG"
+          echo "Bumped to $VERSION"
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          VERSION="${{ steps.version.outputs.version }}"
-
-          # Get the previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-          # Generate commit list
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD --no-merges)
-          else
-            COMMITS=$(git log --pretty=format:"- %s" --no-merges)
-          fi
-
-          # Create new changelog entry
-          NEW_ENTRY="## $VERSION
-
-          $COMMITS"
-
-          # Read existing changelog (skip the header)
-          EXISTING=$(tail -n +4 CHANGELOG.md)
-
-          # Write updated changelog
-          cat > CHANGELOG.md << EOF
-          # Changelog
-
-          All notable changes to this project will be documented in this file.
-
-          $NEW_ENTRY
-
-          $EXISTING
-          EOF
-
-          # Remove leading spaces from heredoc
-          sed -i 's/^          //' CHANGELOG.md
-
-          echo "Generated changelog for version $VERSION"
-
-      - name: Commit changelog and create tag
+      - name: Commit and tag
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add CHANGELOG.md
-          git commit -m "chore: update changelog for ${{ steps.version.outputs.tag }}"
+          git add pubspec.yaml
+          git commit -m "chore: release ${{ steps.version.outputs.tag }}"
           git push origin main
 
           git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"

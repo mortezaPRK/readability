@@ -16,7 +16,7 @@ JS_TAR := $(BUILD_DIR)/readability-js.tar.gz
 WASM_TAR := $(BUILD_DIR)/readability-wasm.tar.gz
 JS_TYPES := $(BUILD_DIR)/readability.d.ts
 
-.PHONY: all get lint fix clean help ci coverage test-unit test-e2e run-example
+.PHONY: all get lint fix clean help ci coverage test-unit test-e2e run-example bump-version changelog
 
 all: lint test-unit ## Run lint and tests (default)
 
@@ -115,3 +115,41 @@ coverage: get ## Generate code coverage report
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  %-15s %s\n", $$1, $$2}'
+
+# Version management
+bump-version: ## Bump version (BUMP=patch|minor|major)
+	@if [ -z "$(BUMP)" ]; then echo "Usage: make bump-version BUMP=patch|minor|major"; exit 1; fi
+	@CURRENT=$$(grep '^version:' pubspec.yaml | sed 's/version: //'); \
+	MAJOR=$$(echo $$CURRENT | cut -d. -f1); \
+	MINOR=$$(echo $$CURRENT | cut -d. -f2); \
+	PATCH=$$(echo $$CURRENT | cut -d. -f3); \
+	case "$(BUMP)" in \
+		major) MAJOR=$$((MAJOR + 1)); MINOR=0; PATCH=0 ;; \
+		minor) MINOR=$$((MINOR + 1)); PATCH=0 ;; \
+		patch) PATCH=$$((PATCH + 1)) ;; \
+		*) echo "Invalid BUMP type: $(BUMP)"; exit 1 ;; \
+	esac; \
+	VERSION="$$MAJOR.$$MINOR.$$PATCH"; \
+	sed "s/^version: .*/version: $$VERSION/" pubspec.yaml > pubspec.yaml.tmp && mv pubspec.yaml.tmp pubspec.yaml; \
+	echo "$$VERSION"
+
+changelog: ## Generate full changelog from git history
+	@echo "# Changelog"; \
+	echo ""; \
+	set -- $$(git tag --sort=-v:refname); \
+	while [ $$# -gt 0 ]; do \
+		TAG=$$1; shift; \
+		NEXT=$$1; \
+		VERSION=$${TAG#v}; \
+		if [ -z "$$NEXT" ]; then \
+			COMMITS=$$(git log --pretty=format:"- %s" "$$TAG" --no-merges); \
+		else \
+			COMMITS=$$(git log --pretty=format:"- %s" "$$NEXT..$$TAG" --no-merges); \
+		fi; \
+		if [ -n "$$COMMITS" ]; then \
+			echo "## $$VERSION"; \
+			echo ""; \
+			echo "$$COMMITS"; \
+			echo ""; \
+		fi; \
+	done
