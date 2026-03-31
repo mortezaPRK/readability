@@ -1,6 +1,6 @@
 name: reader_mode
 description: A Dart port of Mozilla's Readability.js content extraction library.
-version: 0.2.1
+version: 0.2.2
 repository: https://github.com/mortezaPRK/readability
 homepage: https://github.com/mortezaPRK/readability
 issue_tracker: https://github.com/mortezaPRK/readability/issues
