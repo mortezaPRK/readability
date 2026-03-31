@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0
+
+- Fix CI automation for pub.dev
 
 ## 0.1.2
 
@@ -22,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - make license pub friendly
 - docs for jsdom attributes
 - Fix/pub score (#7)
+
 ## 0.1.0
 
 - Initial release as `reader_mode`
