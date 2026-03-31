@@ -1,71 +1,82 @@
 name: Release
 
 on:
-  release:
-    types: [published]
-  push:
-    branches: [main]
-    paths: [pubspec.yaml]
+  workflow_dispatch:
 
 permissions:
   contents: write
-  id-token: write
 
 jobs:
-  # Check if we should release (only for push to main)
-  check-version:
-    if: github.event_name == 'push'
+  create-tag:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.check.outputs.version }}
-      should_release: ${{ steps.check.outputs.should_release }}
-      changelog: ${{ steps.changelog.outputs.body }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_PAT }}
 
-      - name: Check version change
-        id: check
+      - name: Determine version
+        id: version
         run: |
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
           TAG="v$VERSION"
 
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists, skipping release"
-            echo "should_release=false" >> $GITHUB_OUTPUT
-          else
-            echo "New version detected: $VERSION"
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "::error::Tag $TAG already exists!"
+            exit 1
           fi
 
-      - name: Extract changelog
-        if: steps.check.outputs.should_release == 'true'
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Creating tag: $TAG"
+
+      - name: Generate changelog
         id: changelog
         run: |
-          VERSION="${{ steps.check.outputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
 
-          # Extract changelog section for this version
-          BODY=$(awk "/^## $VERSION/{flag=1; next} /^## [0-9]/{flag=0} flag" CHANGELOG.md)
+          # Get the previous tag
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
-          # Handle multi-line output
-          {
-            echo "body<<EOF"
-            echo "$BODY"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+          # Generate commit list
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges)
+          fi
 
-  # Build artifacts and create release
-  build:
-    needs: [check-version]
-    if: |
-      always() &&
-      (github.event_name == 'release' ||
-       (github.event_name == 'push' && needs.check-version.outputs.should_release == 'true'))
-    uses: ./.github/workflows/build.yml
-    with:
-      version: ${{ github.event_name == 'release' && github.event.release.tag_name || format('v{0}', needs.check-version.outputs.version) }}
-      release_name: ${{ github.event_name == 'release' && github.event.release.name || format('v{0}', needs.check-version.outputs.version) }}
-      prerelease: ${{ github.event_name == 'release' && github.event.release.prerelease || false }}
-      body: ${{ github.event_name == 'push' && needs.check-version.outputs.changelog || '' }}
+          # Create new changelog entry
+          NEW_ENTRY="## $VERSION
+
+          $COMMITS"
+
+          # Read existing changelog (skip the header)
+          EXISTING=$(tail -n +4 CHANGELOG.md)
+
+          # Write updated changelog
+          cat > CHANGELOG.md << EOF
+          # Changelog
+
+          All notable changes to this project will be documented in this file.
+
+          $NEW_ENTRY
+
+          $EXISTING
+          EOF
+
+          # Remove leading spaces from heredoc
+          sed -i 's/^          //' CHANGELOG.md
+
+          echo "Generated changelog for version $VERSION"
+
+      - name: Commit changelog and create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for ${{ steps.version.outputs.tag }}"
+          git push origin main
+
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
+          git push origin "${{ steps.version.outputs.tag }}"
