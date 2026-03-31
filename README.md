@@ -1,5 +1,8 @@
 # Readability
 
+[![pub package](https://img.shields.io/pub/v/reader_mode.svg)](https://pub.dev/packages/reader_mode)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
 A Dart port of [Mozilla's Readability.js](https://github.com/mozilla/readability) - extract readable content from any web page.
 
 ## Requirements
@@ -14,7 +17,13 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  reader_mode: ^0.1.0
+  reader_mode: # see pub.dev for latest version
+```
+
+Or run:
+
+```bash
+dart pub add reader_mode
 ```
 
 ### As a CLI Tool
