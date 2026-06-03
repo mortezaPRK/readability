@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
         with:
           tag_name: ${{ inputs.version }}
           name: ${{ inputs.release_name || inputs.version }}
@@ -63,7 +63,7 @@ jobs:
             file_name: readability_windows-x64.exe
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
       - uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
         with:
           sdk: stable
@@ -71,7 +71,7 @@ jobs:
         run: make build/${{ matrix.file_name }}
         shell: bash
       - name: Upload to Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v2
         with:
           tag_name: ${{ inputs.version }}
           name: ${{ inputs.release_name || inputs.version }}
