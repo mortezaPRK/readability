@@ -25,8 +25,6 @@
 import 'dart:math' as math;
 
 import 'package:html/dom.dart';
-// ignore: implementation_imports
-import 'package:html/src/query_selector.dart' as query;
 
 import 'constants.dart';
 
@@ -136,7 +134,7 @@ bool isProbablyReaderable(Document doc, [ReaderableOptions? options]) {
       return false;
     }
 
-    if (query.matches(node, 'li p')) {
+    if (_isListItemParagraph(node)) {
       return false;
     }
 
@@ -152,4 +150,20 @@ bool isProbablyReaderable(Document doc, [ReaderableOptions? options]) {
     }
     return false;
   });
+}
+
+bool _isListItemParagraph(Element node) {
+  if (node.localName != 'p') {
+    return false;
+  }
+
+  for (var ancestor = node.parent;
+      ancestor != null;
+      ancestor = ancestor.parent) {
+    if (ancestor.localName == 'li') {
+      return true;
+    }
+  }
+
+  return false;
 }
