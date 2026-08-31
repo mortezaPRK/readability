@@ -194,7 +194,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 This project uses **dual licensing**:
 
 - **[Apache License 2.0](LICENSE)** - Main library code
-- **[Mozilla Public License 2.0](LICENSE)** - JSDOMParser (ported from Mozilla)
+- **[Mozilla Public License 2.0](THIRD-PARTY-LICENSES#mozilla-jsdomparser-mpl-20)** - JSDOMParser (ported from Mozilla)
 
 Both licenses are open source and commercial-friendly. The dual licensing ensures compatibility with Mozilla's original codebase while providing flexibility for most use cases.
 
@@ -204,7 +204,7 @@ Both licenses are open source and commercial-friendly. The dual licensing ensure
 - Modifications to MPL-licensed files (JSDOMParser) must be shared under MPL
 - The rest of the library can be used under Apache 2.0 terms
 
-See the [LICENSE](LICENSE) file for full details.
+See [LICENSE](LICENSE) and [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES) for full details.
 
 ---
 
