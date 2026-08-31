@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:reader_mode/reader_mode.dart';
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   if (args.isEmpty || args.contains('--help') || args.contains('-h')) {
     _printUsage();
     exit(args.isEmpty ? 1 : 0);
@@ -24,7 +24,7 @@ void main(List<String> args) {
   }
 
   try {
-    final html = _readInput(input);
+    final html = await _readInput(input);
     final article = _parseHtml(html, input);
 
     if (article == null) {
@@ -61,7 +61,7 @@ Examples:
 ''');
 }
 
-String _readInput(String input) {
+Future<String> _readInput(String input) async {
   if (input == '-') {
     // Read all of stdin
     final buffer = StringBuffer();
@@ -83,41 +83,15 @@ String _readInput(String input) {
   return file.readAsStringSync();
 }
 
-String _fetchUrl(String url) {
+Future<String> _fetchUrl(String url) async {
   final client = HttpClient();
   try {
-    final request = client.getUrl(Uri.parse(url));
-    final response = request
-        .then((req) => req.close())
-        .then((res) => res.transform(utf8.decoder).join());
-    // Run synchronously for simplicity
-    final result = _runSync(() async => await response);
-    return result;
+    final request = await client.getUrl(Uri.parse(url));
+    final response = await request.close();
+    return await response.transform(utf8.decoder).join();
   } finally {
     client.close();
   }
-}
-
-T _runSync<T>(Future<T> Function() fn) {
-  late T result;
-  var done = false;
-  Exception? error;
-
-  fn().then((value) {
-    result = value;
-    done = true;
-  }).catchError((Object e) {
-    error = e is Exception ? e : Exception(e.toString());
-    done = true;
-  });
-
-  // Busy-wait for completion (not ideal but works for CLI)
-  while (!done) {
-    sleep(const Duration(milliseconds: 10));
-  }
-
-  if (error != null) throw error!;
-  return result;
 }
 
 Article? _parseHtml(String html, String input) {
